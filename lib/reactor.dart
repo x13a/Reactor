@@ -18,7 +18,7 @@ class Reactor extends StatefulWidget {
 }
 
 class _ReactorState extends State<Reactor> {
-  late final WebViewController controller;
+  late final WebViewController webView;
   late Future<ReactorPage> reactorPage;
   final prefs = Prefs();
   final client = ClientWithUserAgent(http.Client());
@@ -50,8 +50,8 @@ class _ReactorState extends State<Reactor> {
   }
 
   Future<bool> onWillPop(BuildContext context) async {
-    if (await controller.canGoBack()) {
-      controller.goBack();
+    if (await webView.canGoBack()) {
+      webView.goBack();
       return Future.value(false);
     }
     return Future.value(true);
@@ -60,7 +60,7 @@ class _ReactorState extends State<Reactor> {
   loadUrl(BuildContext context, String url) async {
     prefs.setLastPageUrl(url);
     final page = await getReactorPage(url);
-    controller.loadUrl(buildUrl(context, page));
+    webView.loadUrl(buildUrl(context, page));
     reactorPage = Future.value(page);
   }
 
@@ -103,7 +103,7 @@ class _ReactorState extends State<Reactor> {
                 javascriptMode: JavascriptMode.unrestricted,
                 userAgent: USER_AGENT,
                 onWebViewCreated: (WebViewController controller) {
-                  this.controller = controller;
+                  this.webView = controller;
                 },
               );
             } else if (snapshot.hasError) {
