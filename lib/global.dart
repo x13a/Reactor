@@ -6,3 +6,4 @@ const VAR_COLOR = '%COLOR%';
 const VAR_BACKGROUND = '%BACKGROUND%';
 
 const CLASS_NAME_POST_SEPARATOR = 'post-separator';
+const CLASS_NAME_POST_IMG_GIF = 'post-img-gif';

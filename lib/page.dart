@@ -34,13 +34,13 @@ class ReactorPost {
 
   static dom.Element? fixPostGifs(dom.Element? element) {
     if (element == null) return null;
-    final gifs = element.querySelectorAll('a.video_gif_source');
-    for (var gif in gifs) {
+    for (var gif in element.querySelectorAll('a.video_gif_source')) {
       final href = gif.attributes['href'];
       if (href == null) continue;
       final imgDiv = gif.parent?.parent;
       if (imgDiv == null || imgDiv.className != 'image') continue;
       final img = dom.Element.tag('img');
+      img.className = CLASS_NAME_POST_IMG_GIF;
       img.attributes['src'] = href;
       imgDiv.replaceWith(img);
     }

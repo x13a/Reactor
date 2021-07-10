@@ -6,7 +6,7 @@ const REACTOR_HTML = """
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <style>        
+    <style>
       body {
         color: $VAR_COLOR;
         background: $VAR_BACKGROUND;
@@ -14,12 +14,17 @@ const REACTOR_HTML = """
       
       img {
         width: 100%;
-        height: auto;    
+        height: auto;
+      }
+      
+      img:not(.$CLASS_NAME_POST_IMG_GIF) {
+        object-fit: cover;
+        object-position: 0 10px;
       }
       
       iframe {
-        width: 100%;
-        height: calc(100vw / 1.778);
+        width: 100vw;
+        height: 56.25vw;
       }
       
       hr.$CLASS_NAME_POST_SEPARATOR {
