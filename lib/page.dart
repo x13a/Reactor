@@ -37,13 +37,9 @@ class ReactorPost {
     final gifs = element.querySelectorAll('a.video_gif_source');
     for (var gif in gifs) {
       final href = gif.attributes['href'];
-      if (href == null) {
-        continue;
-      }
+      if (href == null) continue;
       final imgDiv = gif.parent?.parent;
-      if (imgDiv == null || imgDiv.className != 'image') {
-        continue;
-      }
+      if (imgDiv == null || imgDiv.className != 'image') continue;
       final img = dom.Element.tag('img');
       img.attributes['src'] = href;
       imgDiv.replaceWith(img);
