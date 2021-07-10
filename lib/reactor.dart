@@ -121,18 +121,15 @@ class _ReactorState extends State<Reactor> {
               children: [
                 IconButton(
                   onPressed: () => prevPageHandler(context),
-                  icon: const Icon(Icons.arrow_left),
-                ),
+                  icon: const Icon(Icons.arrow_left)),
                 const Spacer(),
                 IconButton(
                   onPressed: () => homePageHandler(context),
-                  icon: const Icon(Icons.home),
-                ),
+                  icon: const Icon(Icons.home)),
                 const Spacer(),
                 IconButton(
                   onPressed: () => nextPageHandler(context),
-                  icon: const Icon(Icons.arrow_right),
-                ),
+                  icon: const Icon(Icons.arrow_right)),
               ],
             ),
           ),
