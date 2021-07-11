@@ -25,7 +25,7 @@ class _ReactorState extends State<Reactor> {
   final webViewKey = UniqueKey();
 
   Future<ReactorPage> getReactorPage(String url) async {
-    return ReactorPage(parse((await client.get(Uri.parse(url))).body));
+    return ReactorPage(parse((await client.get(Uri.parse(url))).body), url);
   }
 
   String buildHtml(bool isDarkMode, ReactorPage reactorPage) {
@@ -73,14 +73,14 @@ class _ReactorState extends State<Reactor> {
   }
 
   homePageHandler(BuildContext context) async {
-    await loadUrl(context, REACTOR_URL);
+    await loadUrl(context, JOYREACTOR_URL);
   }
 
   @override
   void initState() {
     super.initState();
     reactorPage = prefs.getLastPageUrl().then((url) {
-      return getReactorPage(url ?? REACTOR_URL);
+      return getReactorPage(url ?? JOYREACTOR_URL);
     });
   }
 

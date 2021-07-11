@@ -1,7 +1,6 @@
 import 'package:html/dom.dart' as dom;
 import 'package:html/parser.dart';
 
-import 'global.dart';
 import 'html.dart';
 import 'http.dart';
 import 'utils.dart';
@@ -11,16 +10,17 @@ class ReactorPage {
   static const nextPageSelector = '.next';
   static const prevPageSelector = '.prev';
 
+  final String url;
   final List<ReactorPost> posts;
   final dom.Element? nextButtonElement;
   final dom.Element? prevButtonElement;
 
   String? nextPageUrl() => nextButtonElement == null ?
     null :
-    '$REACTOR_URL${nextButtonElement!.attributes["href"]}';
+    '$url${nextButtonElement!.attributes["href"]}';
   String? prevPageUrl() => prevButtonElement == null ?
     null :
-    '$REACTOR_URL${prevButtonElement!.attributes["href"]}';
+    '$url${prevButtonElement!.attributes["href"]}';
 
   String toHtml() {
     return posts
@@ -28,7 +28,8 @@ class ReactorPage {
       .join('<hr class="$HTML_CLASS_POSTS_SEPARATOR">\n');
   }
 
-  ReactorPage(dom.Document document) :
+  ReactorPage(dom.Document document, String url) :
+    this.url = Uri.parse(url).origin,
     posts = document
       .querySelectorAll(postsSelector)
       .map((e) => ReactorPost(e)).toList(),
@@ -59,7 +60,7 @@ class ReactorPost {
     return '<div>$content</div><div>$comments</div>';
   }
 
-  getCensoredContent(HttpClientWithUserAgent client) async {
+  getCensoredContent(HttpClientWithUserAgent client, String url) async {
     if (content != null ||
         element.querySelector('img[alt="Copywrite"]') == null) {
       return;
@@ -67,8 +68,7 @@ class ReactorPost {
     final link = foot?.getLink();
     if (link == null) return;
     final page =
-      ReactorPage(parse((await
-        client.get(Uri.parse('$REACTOR_MOBILE_URL$link'))).body));
+      ReactorPage(parse((await client.get(Uri.parse('$url$link'))).body), url);
     content = page.posts.first.content;
   }
 
@@ -142,12 +142,12 @@ class ReactorCommentContent {
     fixGifs(element);
   }
 
-  getHiddenContent(HttpClientWithUserAgent client) async {
+  getHiddenContent(HttpClientWithUserAgent client, String url) async {
     final showComment = element.querySelector('.comment_show');
     if (showComment == null) return;
     final href = showComment.attributes['href'];
     if (href == null) return;
-    element.innerHtml = (await client.get(Uri.parse('$REACTOR_URL$href'))).body;
+    element.innerHtml = (await client.get(Uri.parse('$url$href'))).body;
     fixGifs(element);
   }
 }
