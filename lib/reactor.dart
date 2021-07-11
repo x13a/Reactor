@@ -31,6 +31,7 @@ class _ReactorState extends State<Reactor> {
   Future<ReactorPage> getReactorPageWithAdditionContent(String url) async {
     final page = await getReactorPage(url);
     await page.getCommentsHiddenContent(client);
+    await page.getPostsCensoredContent(client);
     return page;
   }
 

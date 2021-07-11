@@ -1,4 +1,5 @@
 import 'package:html/dom.dart' as dom;
+import 'package:html/parser.dart';
 
 import 'global.dart';
 import 'html.dart';
@@ -36,36 +37,61 @@ class ReactorPage {
 
   getCommentsHiddenContent(HttpClientWithUserAgent client) async {
     for (var commentContent in posts
-      .map((e) => e.comments.map((e) => e.content))
+      .map((e) => e.bestComments.map((e) => e.content))
       .expand((e) => e)
-      .whereType<ReactorCommentContent>()
     ) {
-      await commentContent.getHiddenContent(client);
-      commentContent.element = fixGifs(commentContent.element);
+      await commentContent?.getHiddenContent(client);
+      fixGifs(commentContent?.element);
+    }
+  }
+
+  getPostsCensoredContent(HttpClientWithUserAgent client) async {
+    for (var post in posts) {
+      await post.getCensoredContent(client);
+      fixGifs(post.content?.element);
     }
   }
 }
 
 class ReactorPost {
+  static const headSelector = '.uhead';
   static const tagsSelector = '.taglist a';
   static const contentSelector = '.post_content';
   static const commentsSelector = '.post_comment_list .comment';
+  static const footSelector = '.ufoot';
 
   final dom.Element element;
+  late final ReactorHead? head;
   late final List<ReactorTag> tags;
-  late final ReactorPostContent? content;
-  late final List<ReactorComment> comments;
+  late ReactorPostContent? content;
+  late final List<ReactorComment> bestComments;
+  late final ReactorFoot? foot;
 
   String toHtml() {
     final content = this.content?.element.outerHtml ?? 'Not Found';
     final comments = this
-      .comments
-      .map((e) => e.content?.element.outerHtml)
+      .bestComments
+      .map((e) => e.content?.element.outerHtml ?? 'Not Found')
       .join('\n');
     return '<div>$content</div><div>$comments</div>';
   }
 
+  getCensoredContent(HttpClientWithUserAgent client) async {
+    if (content != null ||
+        element.querySelector('img[alt="Copywrite"]') == null) {
+      return;
+    }
+    final link = foot?.getLink();
+    if (link == null) return;
+    final page =
+      ReactorPage(parse((await
+        client.get(Uri.parse('$REACTOR_MOBILE_URL$link'))).body));
+    content = page.posts.first.content;
+  }
+
   ReactorPost(this.element) {
+    final headElement = element.querySelector(headSelector);
+    head = headElement != null ? ReactorHead(headElement) : null;
     tags = element
       .querySelectorAll(tagsSelector)
       .map((e) => ReactorTag(e))
@@ -74,11 +100,19 @@ class ReactorPost {
     content = contentElement != null ?
       ReactorPostContent(contentElement) :
       null;
-    comments = element
+    bestComments = element
       .querySelectorAll(commentsSelector)
       .map((e) => ReactorComment(e))
       .toList();
+    final footElement = element.querySelector(footSelector);
+    foot = footElement != null ? ReactorFoot(footElement) : null;
   }
+}
+
+class ReactorHead {
+  final dom.Element element;
+
+  ReactorHead(this.element);
 }
 
 class ReactorTag {
@@ -99,8 +133,7 @@ class ReactorTag {
 class ReactorPostContent {
   final dom.Element element;
 
-  ReactorPostContent(dom.Element element) :
-    this.element = fixGifs(element);
+  ReactorPostContent(this.element);
 }
 
 class ReactorComment {
@@ -123,10 +156,20 @@ class ReactorCommentContent {
   ReactorCommentContent(this.element);
 
   getHiddenContent(HttpClientWithUserAgent client) async {
-    final showComment = element.querySelector('a.comment_show');
+    final showComment = element.querySelector('.comment_show');
     if (showComment == null) return;
     final href = showComment.attributes['href'];
     if (href == null) return;
     element.innerHtml = (await client.get(Uri.parse('$REACTOR_URL$href'))).body;
   }
+}
+
+class ReactorFoot {
+  final dom.Element element;
+
+  String? getLink() {
+    return element.querySelector('.link_wr .link')?.attributes['href'];
+  }
+
+  ReactorFoot(this.element);
 }

@@ -1,6 +1,7 @@
 import 'package:html/dom.dart' as dom;
 
-dom.Element fixGifs(dom.Element element) {
+fixGifs(dom.Element? element) {
+  if (element == null) return;
   for (var gif in element.querySelectorAll('a.video_gif_source')) {
     final href = gif.attributes['href'];
     if (href == null) continue;
@@ -10,5 +11,4 @@ dom.Element fixGifs(dom.Element element) {
     img.attributes['src'] = href;
     imgDiv.replaceWith(img);
   }
-  return element;
 }
