@@ -28,6 +28,10 @@ const REACTOR_HTML = """
       }
       
       hr.$CLASS_NAME_POST_SEPARATOR {
+      a {
+        color: inherit;
+      }
+      
         margin: 10px 0;
       }
     </style>
