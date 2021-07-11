@@ -8,8 +8,8 @@ const REACTOR_HTML = """
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
       body {
-        color: $VAR_COLOR;
-        background: $VAR_BACKGROUND;
+        color: $HTML_CSS_COLOR;
+        background: $HTML_CSS_BACKGROUND;
       }
       
       img {
@@ -17,7 +17,7 @@ const REACTOR_HTML = """
         height: auto;
       }
       
-      img:not(.$CLASS_NAME_POST_IMG_GIF) {
+      img:not(.$HTML_CLASS_POST_IMG_GIF) {
         object-fit: cover;
         object-position: 0 10px;
       }
@@ -27,18 +27,18 @@ const REACTOR_HTML = """
         height: 56.25vw;
       }
       
-      hr.$CLASS_NAME_POST_SEPARATOR {
       a {
         color: inherit;
       }
       
+      hr.$HTML_CLASS_POST_SEPARATOR {
         margin: 10px 0;
       }
     </style>
   </head>
   <body>
     <div>
-      $VAR_CONTENT
+      $HTML_CONTENT
     </div>
   </body>
   </html>

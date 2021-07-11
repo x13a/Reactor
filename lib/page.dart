@@ -40,7 +40,7 @@ class ReactorPost {
       final imgDiv = gif.parent?.parent;
       if (imgDiv == null || imgDiv.className != 'image') continue;
       final img = dom.Element.tag('img');
-      img.className = CLASS_NAME_POST_IMG_GIF;
+      img.className = HTML_CLASS_POST_IMG_GIF;
       img.attributes['src'] = href;
       imgDiv.replaceWith(img);
     }

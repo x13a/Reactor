@@ -31,12 +31,12 @@ class _ReactorState extends State<Reactor> {
   String buildHtml(bool isDarkMode, ReactorPage reactorPage) {
     return REACTOR_HTML
       .replaceFirst(
-        VAR_CONTENT,
+        HTML_CONTENT,
         reactorPage.posts
           .map((e) => e.postContent?.outerHtml ?? 'Not Found')
-          .join('<hr class="$CLASS_NAME_POST_SEPARATOR">\n'))
-      .replaceFirst(VAR_COLOR, isDarkMode ? '#ddd' : 'black')
-      .replaceFirst(VAR_BACKGROUND, isDarkMode ? 'black' : '#eee');
+          .join('<hr class="$HTML_CLASS_POST_SEPARATOR">\n'))
+      .replaceFirst(HTML_CSS_COLOR, isDarkMode ? '#ddd' : 'black')
+      .replaceFirst(HTML_CSS_BACKGROUND, isDarkMode ? 'black' : '#eee');
   }
 
   String buildUrl(BuildContext context, ReactorPage reactorPage) {
