@@ -1,4 +1,9 @@
-import 'global.dart';
+import 'page.dart';
+
+const HTML_CONTENT = '%CONTENT%';
+const HTML_CSS_COLOR = '%COLOR%';
+const HTML_CSS_BACKGROUND = '%BACKGROUND%';
+const HTML_CLASS_POSTS_SEPARATOR = 'posts-separator';
 
 const REACTOR_HTML = """
   <!DOCTYPE html>
@@ -15,9 +20,6 @@ const REACTOR_HTML = """
       img {
         width: 100%;
         height: auto;
-      }
-      
-      img:not(.$HTML_CLASS_POST_IMG_GIF) {
         object-fit: cover;
         object-position: 0 10px;
       }
@@ -31,8 +33,19 @@ const REACTOR_HTML = """
         color: inherit;
       }
       
-      hr.$HTML_CLASS_POST_SEPARATOR {
+      hr.$HTML_CLASS_POSTS_SEPARATOR {
         margin: 10px 0;
+      }
+      
+      ${ReactorPost.contentSelector} {
+        max-height: 2000px;
+        overflow: hidden;
+      }
+      
+      ${ReactorComment.contentSelector} {
+        border: 1px solid;
+        margin: 5px 0;
+        padding: 5px;
       }
     </style>
   </head>

@@ -30,11 +30,7 @@ class _ReactorState extends State<Reactor> {
 
   String buildHtml(bool isDarkMode, ReactorPage reactorPage) {
     return REACTOR_HTML
-      .replaceFirst(
-        HTML_CONTENT,
-        reactorPage.posts
-          .map((e) => e.postContent?.outerHtml ?? 'Not Found')
-          .join('<hr class="$HTML_CLASS_POST_SEPARATOR">\n'))
+      .replaceFirst(HTML_CONTENT, reactorPage.toHtml())
       .replaceFirst(HTML_CSS_COLOR, isDarkMode ? '#ddd' : 'black')
       .replaceFirst(HTML_CSS_BACKGROUND, isDarkMode ? 'black' : '#eee');
   }

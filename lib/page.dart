@@ -1,15 +1,17 @@
 import 'package:html/dom.dart' as dom;
 
 import 'global.dart';
+import 'html.dart';
+import 'utils.dart';
 
 class ReactorPage {
   static const postsSelector = '.postContainer';
   static const nextPageSelector = '.next';
   static const prevPageSelector = '.prev';
 
+  final List<ReactorPost> posts;
   final dom.Element? nextButtonElement;
   final dom.Element? prevButtonElement;
-  final List<ReactorPost> posts;
 
   String? nextPageUrl() => nextButtonElement == null ?
     null :
@@ -18,35 +20,95 @@ class ReactorPage {
     null :
     '$REACTOR_URL${prevButtonElement!.attributes["href"]}';
 
+  String toHtml() {
+    return posts
+      .map((e) => e.toHtml())
+      .join('<hr class="$HTML_CLASS_POSTS_SEPARATOR">\n');
+  }
+
   ReactorPage(dom.Document document) :
-    nextButtonElement = document.querySelector(nextPageSelector),
-    prevButtonElement = document.querySelector(prevPageSelector),
     posts = document
       .querySelectorAll(postsSelector)
-      .map((value) => ReactorPost(value)).toList();
+      .map((e) => ReactorPost(e)).toList(),
+    nextButtonElement = document.querySelector(nextPageSelector),
+    prevButtonElement = document.querySelector(prevPageSelector);
 }
 
 class ReactorPost {
-  static const postContentSelector = '.post_content';
+  static const tagsSelector = '.taglist a';
+  static const contentSelector = '.post_content';
+  static const commentsSelector = '.post_comment_list .comment';
 
-  final dom.Element post;
-  final dom.Element? postContent;
+  final dom.Element element;
+  late final List<ReactorTag> tags;
+  late final ReactorPostContent? content;
+  late final List<ReactorComment> comments;
 
-  static dom.Element? fixPostGifs(dom.Element? element) {
-    if (element == null) return null;
-    for (var gif in element.querySelectorAll('a.video_gif_source')) {
-      final href = gif.attributes['href'];
-      if (href == null) continue;
-      final imgDiv = gif.parent?.parent;
-      if (imgDiv == null || imgDiv.className != 'image') continue;
-      final img = dom.Element.tag('img');
-      img.className = HTML_CLASS_POST_IMG_GIF;
-      img.attributes['src'] = href;
-      imgDiv.replaceWith(img);
-    }
-    return element;
+  String toHtml() {
+    final content = this.content?.element.outerHtml ?? 'Not Found';
+    final comments = this
+      .comments
+      .map((e) => e.content?.element.outerHtml)
+      .join('\n');
+    return '<div>$content</div><div>$comments</div>';
   }
 
-  ReactorPost(this.post) :
-    postContent = fixPostGifs(post.querySelector(postContentSelector));
+  ReactorPost(this.element) {
+    tags = element
+      .querySelectorAll(tagsSelector)
+      .map((e) => ReactorTag(e))
+      .toList();
+    final contentElement = element.querySelector(contentSelector);
+    content = contentElement != null ?
+      ReactorPostContent(contentElement) :
+      null;
+    comments = element
+      .querySelectorAll(commentsSelector)
+      .map((e) => ReactorComment(e))
+      .toList();
+  }
+}
+
+class ReactorTag {
+  final dom.Element element;
+  late final List<int> ids;
+
+  ReactorTag(this.element) {
+    final dataIds = element.attributes['data-ids'];
+    ids = dataIds == null ?
+      [] :
+      dataIds
+        .split(',')
+        .map((e) => int.parse(e))
+        .toList();
+  }
+}
+
+class ReactorPostContent {
+  final dom.Element element;
+
+  ReactorPostContent(dom.Element element) :
+    this.element = fixGifs(element);
+}
+
+class ReactorComment {
+  static const contentSelector = '.comment-content';
+
+  final dom.Element element;
+  late final ReactorCommentContent? content;
+
+  ReactorComment(this.element) {
+    final contentElement = element.querySelector(contentSelector);
+    content = contentElement != null ?
+      ReactorCommentContent(contentElement) :
+      null;
+  }
+}
+
+class ReactorCommentContent {
+  late final dom.Element element;
+
+  ReactorCommentContent(dom.Element element) {
+    this.element = fixGifs(element);
+  }
 }
