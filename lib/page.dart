@@ -34,23 +34,6 @@ class ReactorPage {
       .map((e) => ReactorPost(e)).toList(),
     nextButtonElement = document.querySelector(nextPageSelector),
     prevButtonElement = document.querySelector(prevPageSelector);
-
-  getCommentsHiddenContent(HttpClientWithUserAgent client) async {
-    for (var commentContent in posts
-      .map((e) => e.bestComments.map((e) => e.content))
-      .expand((e) => e)
-    ) {
-      await commentContent?.getHiddenContent(client);
-      fixGifs(commentContent?.element);
-    }
-  }
-
-  getPostsCensoredContent(HttpClientWithUserAgent client) async {
-    for (var post in posts) {
-      await post.getCensoredContent(client);
-      fixGifs(post.content?.element);
-    }
-  }
 }
 
 class ReactorPost {
@@ -133,7 +116,9 @@ class ReactorTag {
 class ReactorPostContent {
   final dom.Element element;
 
-  ReactorPostContent(this.element);
+  ReactorPostContent(this.element) {
+    fixGifs(element);
+  }
 }
 
 class ReactorComment {
@@ -151,9 +136,11 @@ class ReactorComment {
 }
 
 class ReactorCommentContent {
-  late final dom.Element element;
+  final dom.Element element;
 
-  ReactorCommentContent(this.element);
+  ReactorCommentContent(this.element) {
+    fixGifs(element);
+  }
 
   getHiddenContent(HttpClientWithUserAgent client) async {
     final showComment = element.querySelector('.comment_show');
@@ -161,6 +148,7 @@ class ReactorCommentContent {
     final href = showComment.attributes['href'];
     if (href == null) return;
     element.innerHtml = (await client.get(Uri.parse('$REACTOR_URL$href'))).body;
+    fixGifs(element);
   }
 }
 
