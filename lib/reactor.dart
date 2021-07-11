@@ -21,11 +21,17 @@ class _ReactorState extends State<Reactor> {
   late final WebViewController webView;
   late Future<ReactorPage> reactorPage;
   final prefs = Prefs();
-  final client = ClientWithUserAgent(http.Client());
+  final client = HttpClientWithUserAgent(http.Client());
   final webViewKey = UniqueKey();
 
   Future<ReactorPage> getReactorPage(String url) async {
     return ReactorPage(parse((await client.get(Uri.parse(url))).body));
+  }
+
+  Future<ReactorPage> getReactorPageWithAdditionContent(String url) async {
+    final page = await getReactorPage(url);
+    await page.getCommentsHiddenContent(client);
+    return page;
   }
 
   String buildHtml(bool isDarkMode, ReactorPage reactorPage) {
@@ -55,7 +61,7 @@ class _ReactorState extends State<Reactor> {
 
   loadUrl(BuildContext context, String url) async {
     prefs.setLastPageUrl(url);
-    final page = await getReactorPage(url);
+    final page = await getReactorPageWithAdditionContent(url);
     webView.loadUrl(buildUrl(context, page));
     reactorPage = Future.value(page);
   }
@@ -80,7 +86,7 @@ class _ReactorState extends State<Reactor> {
   void initState() {
     super.initState();
     reactorPage = prefs.getLastPageUrl().then((url) {
-      return getReactorPage(url ?? REACTOR_URL);
+      return getReactorPageWithAdditionContent(url ?? REACTOR_URL);
     });
   }
 

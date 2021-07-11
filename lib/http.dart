@@ -2,10 +2,10 @@ import 'package:http/http.dart' as http;
 
 import 'global.dart';
 
-class ClientWithUserAgent extends http.BaseClient {
+class HttpClientWithUserAgent extends http.BaseClient {
   final http.Client client;
 
-  ClientWithUserAgent(this.client);
+  HttpClientWithUserAgent(this.client);
 
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) async {

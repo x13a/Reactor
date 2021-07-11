@@ -2,6 +2,7 @@ import 'package:html/dom.dart' as dom;
 
 import 'global.dart';
 import 'html.dart';
+import 'http.dart';
 import 'utils.dart';
 
 class ReactorPage {
@@ -32,6 +33,16 @@ class ReactorPage {
       .map((e) => ReactorPost(e)).toList(),
     nextButtonElement = document.querySelector(nextPageSelector),
     prevButtonElement = document.querySelector(prevPageSelector);
+
+  getCommentsHiddenContent(HttpClientWithUserAgent client) async {
+    for (var commentContent in posts
+      .map((e) => e.comments.map((e) => e.content))
+      .expand((e) => e)
+      .whereType<ReactorCommentContent>()
+    ) {
+      await commentContent.getHiddenContent(client);
+    }
+  }
 }
 
 class ReactorPost {
@@ -108,7 +119,13 @@ class ReactorComment {
 class ReactorCommentContent {
   late final dom.Element element;
 
-  ReactorCommentContent(dom.Element element) {
-    this.element = fixGifs(element);
+  ReactorCommentContent(this.element);
+
+  getHiddenContent(HttpClientWithUserAgent client) async {
+    final showComment = element.querySelector('a.comment_show');
+    if (showComment == null) return;
+    final href = showComment.attributes['href'];
+    if (href == null) return;
+    element.innerHtml = (await client.get(Uri.parse('$REACTOR_URL$href'))).body;
   }
 }
