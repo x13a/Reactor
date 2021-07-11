@@ -41,6 +41,7 @@ class ReactorPage {
       .whereType<ReactorCommentContent>()
     ) {
       await commentContent.getHiddenContent(client);
+      commentContent.element = fixGifs(commentContent.element);
     }
   }
 }
