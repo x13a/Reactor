@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:html/parser.dart';
 import 'package:http/http.dart' as http;
 import 'package:webview_flutter/webview_flutter.dart';
 
@@ -12,23 +11,46 @@ import 'http.dart';
 import 'page.dart';
 import 'prefs.dart';
 
-class Reactor extends StatefulWidget {
-  const Reactor({ Key? key }) : super(key: key);
-  _ReactorState createState() => _ReactorState();
+class ReactorPageView extends StatefulWidget {
+  final client = HttpClientWithUserAgent(http.Client());
+
+  final ReactorPrefs prefs;
+  final Uri uri;
+
+  ReactorPageView({
+    Key? key,
+    required String url,
+    required String prefsPrefix,
+  }) :
+    prefs = ReactorPrefs(prefsPrefix),
+    uri = Uri.parse(url),
+    super(key: key);
+  _ReactorPageViewState createState() =>
+    _ReactorPageViewState(uri: uri, client: client, prefs: prefs);
 }
 
-class _ReactorState extends State<Reactor> {
-  late final WebViewController webView;
-  late Future<ReactorPage> reactorPage;
-  final prefs = Prefs();
-  final client = HttpClientWithUserAgent(http.Client());
+class _ReactorPageViewState extends State<ReactorPageView> {
   final webViewKey = UniqueKey();
 
+  late final WebViewController webView;
+  late Future<ReactorPage> reactorPage;
+
+  final Uri uri;
+  final HttpClientWithUserAgent client;
+  final ReactorPrefs prefs;
+
+  _ReactorPageViewState({
+    required this.uri,
+    required this.client,
+    required this.prefs,
+  }) : super();
+
   Future<ReactorPage> getReactorPage(String url) async {
-    return ReactorPage(parse((await client.get(Uri.parse(url))).body), url);
+    return ReactorPage((await client.get(Uri.parse(url))).body);
   }
 
-  String buildHtml(bool isDarkMode, ReactorPage reactorPage) {
+  String buildHtml(BuildContext context, ReactorPage reactorPage) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return REACTOR_HTML
       .replaceFirst(HTML_CONTENT, reactorPage.toHtml())
       .replaceFirst(HTML_CSS_COLOR, isDarkMode ? '#ddd' : 'black')
@@ -38,7 +60,7 @@ class _ReactorState extends State<Reactor> {
   String buildUrl(BuildContext context, ReactorPage reactorPage) {
     return Uri
       .dataFromString(
-        buildHtml(Theme.of(context).brightness == Brightness.dark, reactorPage),
+        buildHtml(context, reactorPage),
         mimeType: 'text/html',
         encoding: Utf8Codec(),
         base64: true,
@@ -61,26 +83,44 @@ class _ReactorState extends State<Reactor> {
   }
 
   nextPageHandler(BuildContext context) async {
-    final url = (await reactorPage).nextPageUrl();
+    var url = (await reactorPage).nextPageUrl();
     if (url == null) return;
-    await loadUrl(context, url);
+    if (!url.startsWith('/')) url = '/$url';
+    await loadUrl(context, '${uri.origin}$url');
   }
 
   prevPageHandler(BuildContext context) async {
-    final url = (await reactorPage).prevPageUrl();
+    var url = (await reactorPage).prevPageUrl();
     if (url == null) return;
-    await loadUrl(context, url);
+    if (!url.startsWith('/')) url = '/$url';
+    await loadUrl(context, '${uri.origin}$url');
   }
 
   homePageHandler(BuildContext context) async {
-    await loadUrl(context, JOYREACTOR_URL);
+    await loadUrl(context, uri.origin);
+  }
+
+  onShowCommentMessage(JavascriptMessage message) async {
+    final parts = message.message.split(HTML_JS_MESSAGE_SEPARATOR);
+    if (parts.length != 2) return;
+    final commentId = parts[0];
+    var showHref = parts[1];
+    if (!showHref.startsWith('/')) showHref = '/$showHref';
+    final content = (await client
+      .get(Uri.parse('${uri.origin}$showHref'))).body;
+    webView.evaluateJavascript("""
+      const comment = document.getElementById('$commentId');
+      if (comment !== null) {
+        comment.innerHTML = `$content`;
+      }
+    """);
   }
 
   @override
   void initState() {
     super.initState();
     reactorPage = prefs.getLastPageUrl().then((url) {
-      return getReactorPage(url ?? JOYREACTOR_URL);
+      return getReactorPage(url ?? uri.origin);
     });
   }
 
@@ -104,30 +144,14 @@ class _ReactorState extends State<Reactor> {
                 javascriptChannels: Set.from([
                   JavascriptChannel(
                     name: HTML_JS_SHOW_COMMENT_CHANNEL,
-                    onMessageReceived: (JavascriptMessage message) async {
-                      final parts = message
-                        .message
-                        .split(HTML_JS_MESSAGE_SEPARATOR);
-                      if (parts.length != 2) return;
-                      final commentId = parts[0];
-                      final showHref = parts[1];
-                      final page = await reactorPage;
-                      final content =
-                        (await client.get(
-                          Uri.parse('${page.url}$showHref'))).body;
-                      webView.evaluateJavascript("""
-                        const comment = document.getElementById('$commentId');
-                        if (comment !== null) {
-                          comment.innerHTML = `$content`;
-                        }
-                      """);
-                    }),
+                    onMessageReceived: onShowCommentMessage,
+                  ),
                 ]),
               );
             } else if (snapshot.hasError) {
               return Center(child: Padding(
-                  child: Text('Error: ${snapshot.error.toString()}'),
-                  padding: const EdgeInsets.all(10.0)),
+                child: Text('Error: ${snapshot.error.toString()}'),
+                padding: const EdgeInsets.all(20.0)),
               );
             } else {
               return Center(child: CircularProgressIndicator());
@@ -138,21 +162,19 @@ class _ReactorState extends State<Reactor> {
           color: Colors.black,
           child: IconTheme(
             data: IconThemeData(color: Theme.of(context).colorScheme.onPrimary),
-            child: Row(
-              children: [
-                IconButton(
-                  onPressed: () => prevPageHandler(context),
-                  icon: const Icon(Icons.arrow_left)),
-                const Spacer(),
-                IconButton(
-                  onPressed: () => homePageHandler(context),
-                  icon: const Icon(Icons.home)),
-                const Spacer(),
-                IconButton(
-                  onPressed: () => nextPageHandler(context),
-                  icon: const Icon(Icons.arrow_right)),
-              ],
-            ),
+            child: Row(children: [
+              IconButton(
+                onPressed: () => prevPageHandler(context),
+                icon: const Icon(Icons.arrow_left)),
+              const Spacer(),
+              IconButton(
+                onPressed: () => homePageHandler(context),
+                icon: const Icon(Icons.home)),
+              const Spacer(),
+              IconButton(
+                onPressed: () => nextPageHandler(context),
+                icon: const Icon(Icons.arrow_right)),
+            ]),
           ),
         ),
       ),

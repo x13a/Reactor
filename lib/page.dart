@@ -2,24 +2,24 @@ import 'package:html/dom.dart' as dom;
 import 'package:html/parser.dart';
 
 import 'html.dart';
-import 'http.dart';
 
 class ReactorPage {
   static const postsSelector = '.postContainer';
   static const nextPageSelector = '.next';
   static const prevPageSelector = '.prev';
 
-  final String url;
-  final List<ReactorPost> posts;
-  final dom.Element? nextButtonElement;
-  final dom.Element? prevButtonElement;
+  final dom.Document document;
+
+  late final List<ReactorPost> posts;
+  late final dom.Element? nextButtonElement;
+  late final dom.Element? prevButtonElement;
 
   String? nextPageUrl() => nextButtonElement == null ?
     null :
-    '$url${nextButtonElement!.attributes["href"]}';
+    '${nextButtonElement!.attributes["href"]}';
   String? prevPageUrl() => prevButtonElement == null ?
     null :
-    '$url${prevButtonElement!.attributes["href"]}';
+    '${prevButtonElement!.attributes["href"]}';
 
   String toHtml() {
     return posts
@@ -27,13 +27,13 @@ class ReactorPage {
       .join('<hr class="$HTML_CLASS_POSTS_SEPARATOR">\n');
   }
 
-  ReactorPage(dom.Document document, String url) :
-    this.url = Uri.parse(url).origin,
+  ReactorPage(String page) : document = parse(page) {
     posts = document
       .querySelectorAll(postsSelector)
-      .map((e) => ReactorPost(e)).toList(),
-    nextButtonElement = document.querySelector(nextPageSelector),
+      .map((e) => ReactorPost(e)).toList();
+    nextButtonElement = document.querySelector(nextPageSelector);
     prevButtonElement = document.querySelector(prevPageSelector);
+  }
 }
 
 class ReactorPost {
@@ -45,12 +45,12 @@ class ReactorPost {
   static const footSelector = '.ufoot';
 
   final dom.Element element;
-  late final ReactorHead? head;
-  late final List<ReactorTag> tags;
+  // late final ReactorHead? head;
+  // late final List<ReactorTag> tags;
   late ReactorPostContent? content;
   late final dom.Element? ldJson;
   late final List<ReactorComment> bestComments;
-  late final ReactorFoot? foot;
+  // late final ReactorFoot? foot;
 
   String toHtml() {
     final content = this.content?.element.outerHtml ?? 'Not Found';
@@ -61,25 +61,13 @@ class ReactorPost {
     return '<div>$content</div>$ldJson<div>$comments</div>';
   }
 
-  getCensoredContent(HttpClientWithUserAgent client, String url) async {
-    if (content != null ||
-        element.querySelector('img[alt="Copywrite"]') == null) {
-      return;
-    }
-    final link = foot?.getLink();
-    if (link == null) return;
-    final page =
-      ReactorPage(parse((await client.get(Uri.parse('$url$link'))).body), url);
-    content = page.posts.first.content;
-  }
-
   ReactorPost(this.element) {
-    final headElement = element.querySelector(headSelector);
-    head = headElement != null ? ReactorHead(headElement) : null;
-    tags = element
-      .querySelectorAll(tagsSelector)
-      .map((e) => ReactorTag(e))
-      .toList();
+    // final headElement = element.querySelector(headSelector);
+    // head = headElement != null ? ReactorHead(headElement) : null;
+    // tags = element
+    //   .querySelectorAll(tagsSelector)
+    //   .map((e) => ReactorTag(e))
+    //   .toList();
     final contentElement = element.querySelector(contentSelector);
     content = contentElement != null ?
       ReactorPostContent(contentElement) :
@@ -89,8 +77,8 @@ class ReactorPost {
       .querySelectorAll(commentsSelector)
       .map((e) => ReactorComment(e))
       .toList();
-    final footElement = element.querySelector(footSelector);
-    foot = footElement != null ? ReactorFoot(footElement) : null;
+    // final footElement = element.querySelector(footSelector);
+    // foot = footElement != null ? ReactorFoot(footElement) : null;
   }
 }
 
@@ -141,14 +129,6 @@ class ReactorCommentContent {
   final dom.Element element;
 
   ReactorCommentContent(this.element);
-
-  getHiddenContent(HttpClientWithUserAgent client, String url) async {
-    final showComment = element.querySelector(showSelector);
-    if (showComment == null) return;
-    final href = showComment.attributes['href'];
-    if (href == null) return;
-    element.innerHtml = (await client.get(Uri.parse('$url$href'))).body;
-  }
 }
 
 class ReactorFoot {

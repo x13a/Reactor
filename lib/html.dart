@@ -4,6 +4,7 @@ const HTML_CONTENT = '%CONTENT%';
 const HTML_CSS_COLOR = '%COLOR%';
 const HTML_CSS_BACKGROUND = '%BACKGROUND%';
 const HTML_CLASS_POST = 'post';
+const HTML_CLASS_POST_EXPANDER = 'js-expand-post';
 const HTML_CLASS_POSTS_SEPARATOR = 'posts-separator';
 const HTML_JS_SHOW_COMMENT_CHANNEL = 'ShowComment';
 const HTML_JS_MESSAGE_SEPARATOR = ';';
@@ -55,9 +56,24 @@ const REACTOR_HTML = """
         margin: 10px 0;
       }
       
+      div.$HTML_CLASS_POST_EXPANDER {
+        display: block;
+        padding: 5px 10px;
+        background-color: #aaa;
+        text-align: right;
+      }
+      
       ${ReactorPost.contentSelector} {
-        max-height: 2000px;
+        max-height: 1000px;
         overflow: hidden;
+      }
+      
+      ${ReactorPost.contentSelector} div:empty, 
+      ${ReactorPost.contentSelector} p:empty, 
+      ${ReactorPost.contentSelector} h3:empty, 
+      ${ReactorPost.contentSelector} p br:only-child, 
+      ${ReactorPost.contentSelector} p > br:last-child {
+        display: none;
       }
       
       ${ReactorComment.contentSelector} {
@@ -119,10 +135,33 @@ const REACTOR_HTML = """
             }
           }
         }
+        
+        function addExpandPostHandlers() {
+          const posts = document
+            .querySelectorAll('${ReactorPost.contentSelector}');
+          if (posts.length === 0) {
+            return;
+          }
+          let maxHeight = parseInt(getComputedStyle(posts[0]).maxHeight);
+          for (let post of posts) {
+            if (post.scrollHeight <= maxHeight) {
+              continue;
+            }
+            const expander = document.createElement('div');
+            expander.className = '$HTML_CLASS_POST_EXPANDER';
+            expander.textContent = '⬇';
+            expander.onclick = function() {
+              expander.remove();
+              post.style.maxHeight = 'none';
+            }
+            post.parentNode.insertBefore(expander, post.nextSibling);
+          }
+        }
       
         document.addEventListener('DOMContentLoaded', function() {
           fixCoubs();
           addShowCommentHandlers();
+          addExpandPostHandlers();
         });
 
       })();

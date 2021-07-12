@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'global.dart';
 import 'reactor.dart';
 
 void main() => runApp(App());
@@ -16,7 +17,10 @@ class App extends StatelessWidget {
       themeMode: ThemeMode.system,
       home: AnnotatedRegion<SystemUiOverlayStyle>(
         value: SystemUiOverlayStyle(statusBarColor: Colors.black),
-        child: Reactor(),
+        child: ReactorPageView(
+          url: JOYREACTOR_URL,
+          prefsPrefix: JOYREACTOR_PREFS_PREFIX,
+        ),
       ),
     );
   }
