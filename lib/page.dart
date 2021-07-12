@@ -3,7 +3,6 @@ import 'package:html/parser.dart';
 
 import 'html.dart';
 import 'http.dart';
-import 'utils.dart';
 
 class ReactorPage {
   static const postsSelector = '.postContainer';
@@ -116,9 +115,7 @@ class ReactorTag {
 class ReactorPostContent {
   final dom.Element element;
 
-  ReactorPostContent(this.element) {
-    fixGifs(element);
-  }
+  ReactorPostContent(this.element);
 }
 
 class ReactorComment {
@@ -138,9 +135,7 @@ class ReactorComment {
 class ReactorCommentContent {
   final dom.Element element;
 
-  ReactorCommentContent(this.element) {
-    fixGifs(element);
-  }
+  ReactorCommentContent(this.element);
 
   getHiddenContent(HttpClientWithUserAgent client, String url) async {
     final showComment = element.querySelector('.comment_show');
@@ -148,7 +143,6 @@ class ReactorCommentContent {
     final href = showComment.attributes['href'];
     if (href == null) return;
     element.innerHtml = (await client.get(Uri.parse('$url$href'))).body;
-    fixGifs(element);
   }
 }
 

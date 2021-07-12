@@ -17,7 +17,7 @@ const REACTOR_HTML = """
         background: $HTML_CSS_BACKGROUND;
       }
       
-      img {
+      img, video {
         width: 100%;
         height: auto;
         object-fit: cover;
