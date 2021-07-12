@@ -23,7 +23,7 @@ class ReactorPage {
 
   String toHtml() {
     return posts
-      .map((e) => e.toHtml())
+      .map((e) => '<div class="post">${e.toHtml()}</div>')
       .join('<hr class="$HTML_CLASS_POSTS_SEPARATOR">\n');
   }
 

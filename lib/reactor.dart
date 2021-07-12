@@ -99,7 +99,7 @@ class _ReactorState extends State<Reactor> {
                 javascriptMode: JavascriptMode.unrestricted,
                 userAgent: USER_AGENT,
                 onWebViewCreated: (WebViewController controller) {
-                  this.webView = controller;
+                  webView = controller;
                 },
               );
             } else if (snapshot.hasError) {
