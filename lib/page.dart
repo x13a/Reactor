@@ -23,7 +23,7 @@ class ReactorPage {
 
   String toHtml() {
     return posts
-      .map((e) => '<div class="post">${e.toHtml()}</div>')
+      .map((e) => '<div class="$HTML_CLASS_POST">${e.toHtml()}</div>')
       .join('<hr class="$HTML_CLASS_POSTS_SEPARATOR">\n');
   }
 
@@ -40,6 +40,7 @@ class ReactorPost {
   static const headSelector = '.uhead';
   static const tagsSelector = '.taglist a';
   static const contentSelector = '.post_content';
+  static const ldJsonSelector = 'script[type="application/ld+json"]';
   static const commentsSelector = '.post_comment_list .comment';
   static const footSelector = '.ufoot';
 
@@ -47,16 +48,17 @@ class ReactorPost {
   late final ReactorHead? head;
   late final List<ReactorTag> tags;
   late ReactorPostContent? content;
+  late final dom.Element? ldJson;
   late final List<ReactorComment> bestComments;
   late final ReactorFoot? foot;
 
   String toHtml() {
     final content = this.content?.element.outerHtml ?? 'Not Found';
-    final comments = this
-      .bestComments
+    final ldJson = this.ldJson?.outerHtml ?? '';
+    final comments = bestComments
       .map((e) => e.content?.element.outerHtml ?? 'Not Found')
       .join('\n');
-    return '<div>$content</div><div>$comments</div>';
+    return '<div>$content</div>$ldJson<div>$comments</div>';
   }
 
   getCensoredContent(HttpClientWithUserAgent client, String url) async {
@@ -82,6 +84,7 @@ class ReactorPost {
     content = contentElement != null ?
       ReactorPostContent(contentElement) :
       null;
+    ldJson = element.querySelector(ldJsonSelector);
     bestComments = element
       .querySelectorAll(commentsSelector)
       .map((e) => ReactorComment(e))
