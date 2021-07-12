@@ -136,12 +136,14 @@ class ReactorComment {
 }
 
 class ReactorCommentContent {
+  static const showSelector = '.comment_show';
+
   final dom.Element element;
 
   ReactorCommentContent(this.element);
 
   getHiddenContent(HttpClientWithUserAgent client, String url) async {
-    final showComment = element.querySelector('.comment_show');
+    final showComment = element.querySelector(showSelector);
     if (showComment == null) return;
     final href = showComment.attributes['href'];
     if (href == null) return;

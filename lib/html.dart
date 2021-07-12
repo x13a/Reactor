@@ -5,6 +5,8 @@ const HTML_CSS_COLOR = '%COLOR%';
 const HTML_CSS_BACKGROUND = '%BACKGROUND%';
 const HTML_CLASS_POST = 'post';
 const HTML_CLASS_POSTS_SEPARATOR = 'posts-separator';
+const HTML_JS_SHOW_COMMENT_CHANNEL = 'ShowComment';
+const HTML_JS_MESSAGE_SEPARATOR = ';';
 
 const REACTOR_HTML = """
   <!DOCTYPE html>
@@ -66,7 +68,8 @@ const REACTOR_HTML = """
     </style>
     <script>
       (function() {
-        document.addEventListener('DOMContentLoaded', function() {
+      
+        function fixCoubs() {
           const posts = document.querySelectorAll('.$HTML_CLASS_POST');
           for (let post of posts) {
             const content = post
@@ -102,7 +105,26 @@ const REACTOR_HTML = """
                 'height', 
                 'calc((100vw * %d) - 10px)'.replace('%d', height / width));
           }
+        }
+        
+        function addShowCommentHandlers() {
+          const comments = document
+            .querySelectorAll('${ReactorCommentContent.showSelector}');
+          for (let comment of comments) {
+            comment.onclick = function() {
+              const msg = this.parentElement.id + 
+                '$HTML_JS_MESSAGE_SEPARATOR' + 
+                this.href;
+              $HTML_JS_SHOW_COMMENT_CHANNEL.postMessage(msg);
+            }
+          }
+        }
+      
+        document.addEventListener('DOMContentLoaded', function() {
+          fixCoubs();
+          addShowCommentHandlers();
         });
+
       })();
     </script>
   </head>

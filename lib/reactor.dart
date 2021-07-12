@@ -101,9 +101,34 @@ class _ReactorState extends State<Reactor> {
                 onWebViewCreated: (WebViewController controller) {
                   webView = controller;
                 },
+                javascriptChannels: Set.from([
+                  JavascriptChannel(
+                    name: HTML_JS_SHOW_COMMENT_CHANNEL,
+                    onMessageReceived: (JavascriptMessage message) async {
+                      final parts = message
+                        .message
+                        .split(HTML_JS_MESSAGE_SEPARATOR);
+                      if (parts.length != 2) return;
+                      final commentId = parts[0];
+                      final showHref = parts[1];
+                      final page = await reactorPage;
+                      final content =
+                        (await client.get(
+                          Uri.parse('${page.url}$showHref'))).body;
+                      webView.evaluateJavascript("""
+                        const comment = document.getElementById('$commentId');
+                        if (comment !== null) {
+                          comment.innerHTML = `$content`;
+                        }
+                      """);
+                    }),
+                ]),
               );
             } else if (snapshot.hasError) {
-              return Center(child: Text('Error: ${snapshot.error.toString()}'));
+              return Center(child: Padding(
+                  child: Text('Error: ${snapshot.error.toString()}'),
+                  padding: const EdgeInsets.all(10.0)),
+              );
             } else {
               return Center(child: CircularProgressIndicator());
             }
