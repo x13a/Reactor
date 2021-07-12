@@ -130,8 +130,9 @@ const REACTOR_HTML = """
             comment.onclick = function() {
               const msg = this.parentElement.id + 
                 '$HTML_JS_MESSAGE_SEPARATOR' + 
-                this.href;
+                this.attributes['href'].value;
               $HTML_JS_SHOW_COMMENT_CHANNEL.postMessage(msg);
+              return false;
             }
           }
         }
