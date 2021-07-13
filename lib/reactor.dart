@@ -105,6 +105,7 @@ class _ReactorPageViewState extends State<ReactorPageView> {
     if (parts.length != 2) return;
     final commentId = parts[0];
     var showHref = parts[1];
+    if (showHref.isEmpty || showHref == '/') return;
     if (!showHref.startsWith('/')) showHref = '/$showHref';
     final content = (await client
       .get(Uri.parse('${uri.origin}$showHref'))).body;
