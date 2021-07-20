@@ -1,0 +1,2 @@
+<p>JoyReactor webview wrapper on minimal.</p>
+Be aware that main site language is RU.
