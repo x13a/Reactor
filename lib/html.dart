@@ -98,7 +98,7 @@ const REACTOR_HTML = """
               continue;
             }
             const coub = iframes[0];
-            if (!coub.src.startsWith('https://coub.com')) {
+            if (!coub.src.startsWith('https://coub.com/')) {
               continue;
             }
             const json = post
